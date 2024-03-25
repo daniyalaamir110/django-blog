@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.urls import reverse
+from taggit.managers import TaggableManagere
 
     
 class PublishedManager(models.Manager):
@@ -36,6 +37,7 @@ class Post(models.Model):
         on_delete=models.CASCADE, 
         related_name='blog_posts'
     )
+    tags = TaggableManager()
 
     objects = models.Manager()
     published = PublishedManager()
