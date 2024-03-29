@@ -64,6 +64,12 @@ class Post(models.Model):
             self.slug
         ])
     
+    def get_similar_posts(self):
+        post_tags_ids = self.tags.values_list('id', flat=True)
+        similar_posts = Post.published.filter(tags__in=post_tags_ids).exclude(id=self.id)
+        similar_posts = similar_posts.annotate(same_tags=models.Count('tags')).order_by('-same_tags', '-publish')[:4]
+        return similar_posts
+    
 
 class Comment(models.Model):
     """

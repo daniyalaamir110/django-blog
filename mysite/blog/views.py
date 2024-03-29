@@ -4,6 +4,7 @@ from django.views.generic import ListView, DetailView
 from django.views.decorators.http import require_POST
 from django.core.mail import send_mail
 from django.conf import settings
+from django.db.models import Count
 from taggit.models import Tag
 from .models import Post
 from .forms import CommentForm, EmailPostForm
@@ -69,12 +70,23 @@ def post_detail(request, year, month, day, post):
         publish__day=day,
         status=Post.Status.PUBLISHED
     )
+    
+    # Comments
     comments = post.comments.filter(active=True)
     form = CommentForm()
+
+    # Similar posts
+    similar_posts = post.get_similar_posts()
+
     return render(
         request=request, 
         template_name='blog/post/detail.html', 
-        context={'post': post, 'comments': comments, 'form': form}
+        context={
+            'post': post, 
+            'comments': comments, 
+            'form': form,
+            'similar_posts': similar_posts
+        }
     )
 
 
