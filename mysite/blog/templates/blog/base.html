@@ -17,5 +17,16 @@
         <p>This is my blog.</p>
         <p>I have {% total_posts %} posts so far.</p>
         {% show_latest_posts 3 %}
+        {% get_most_commented_posts 3 as most_commented_posts %}
+        <h3>Most commented posts</h3>
+        <ul>
+            {% for post in most_commented_posts %}
+                <li>
+                    <a href="{{ post.get_absolute_url }}">
+                        {{ post.title }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
     </div>
 </body>

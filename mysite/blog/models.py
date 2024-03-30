@@ -12,6 +12,15 @@ class PublishedManager(models.Manager):
             .filter(status=Post.Status.PUBLISHED)
     
 
+class MostCommentedManager(models.Manager):
+    def get_queryset(self):
+        return super(MostCommentedManager, self)\
+            .get_queryset()\
+            .filter(status=Post.Status.PUBLISHED)\
+            .annotate(total_comments=models.Count('comments'))\
+            .order_by('-total_comments')
+    
+
 class Post(models.Model):
 
 
@@ -41,6 +50,7 @@ class Post(models.Model):
 
     objects = models.Manager()
     published = PublishedManager()
+    most_commented = MostCommentedManager()
 
 
     class Meta:
@@ -69,7 +79,7 @@ class Post(models.Model):
         similar_posts = Post.published.filter(tags__in=post_tags_ids).exclude(id=self.id)
         similar_posts = similar_posts.annotate(same_tags=models.Count('tags')).order_by('-same_tags', '-publish')[:4]
         return similar_posts
-    
+
 
 class Comment(models.Model):
     """
