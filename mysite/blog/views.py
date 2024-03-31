@@ -4,10 +4,10 @@ from django.views.generic import ListView, DetailView
 from django.views.decorators.http import require_POST
 from django.core.mail import send_mail
 from django.conf import settings
-from django.db.models import Count
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank, TrigramSimilarity
 from taggit.models import Tag
 from .models import Post
-from .forms import CommentForm, EmailPostForm
+from .forms import CommentForm, EmailPostForm, SearchForm
 
 def post_list(request, tag_slug=None):
     post_list = Post.published.all()
@@ -144,4 +144,28 @@ def post_comment(request, post_id):
         request=request,
         template_name='blog/post/detail.html',
         context={'post': post, 'comment': comment, 'comments': comments, 'form': form}
+    )
+
+def post_search(request):
+    form = SearchForm()
+    query = None
+    results = []
+
+    if 'query' in request.GET:
+        form = SearchForm(request.GET)
+        if form.is_valid():
+            query = form.cleaned_data['query']
+            # search_vector = SearchVector('title', weight='A') + SearchVector('body', weight='B')
+            # search_query = SearchQuery(query)
+            results = Post.published.annotate(
+                # search=search_vector,
+                # rank=SearchRank(search_vector, search_query)
+                similarity=TrigramSimilarity('title', query)
+            # ).filter(search=search_query).order_by('-rank')
+            ).filter(similarity__gt=0.1).order_by('-similarity')
+
+    return render(
+        request=request,
+        template_name='blog/post/search.html',
+        context={'form': form, 'query': query, 'results': results}
     )
